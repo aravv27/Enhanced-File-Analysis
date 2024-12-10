@@ -1,4 +1,3 @@
-#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
 from flask import Flask,request,jsonify
 from PIL import Image
 import os
@@ -8,7 +7,7 @@ import re
 
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
-os.environ['GROQ_API_KEY'] = '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'
+os.environ['GROQ_API_KEY'] = 'YOUR API KEY'
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 if not GROQ_API_KEY:
