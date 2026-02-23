@@ -1,0 +1,12 @@
+{
+  "confidence_threshold": 0.50,
+  "max_file_size_mb": 100,
+  "worker_threads": 2,
+  "model_name": "all-MiniLM-L6-v2",
+  "watch_delay_seconds": 2,
+  "ocr_max_pages": 5,
+  "code_max_lines": 500,
+  "log_max_bytes": 5242880,
+  "log_backup_count": 5,
+  "ignored_extensions": [".crdownload", ".tmp", ".part", ".partial"]
+}

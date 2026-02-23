@@ -1,0 +1,9 @@
+{
+  "RL": "Reinforcement Learning, Q-learning, policy gradient, MDP, reward optimization, Markov decision process, value function, temporal difference",
+  "DL": "Deep Learning, neural networks, CNN, RNN, transformers, backpropagation, gradient descent, convolutional, recurrent, attention mechanism",
+  "Crypto": "Cryptography, encryption, blockchain, hashing, RSA, AES, digital signature, public key, symmetric key, cipher",
+  "Compiler": "Compiler design, lexical analysis, parsing, AST, code generation, flex, yacc, syntax tree, grammar, tokenizer, bison",
+  "XAI": "Explainable AI, model interpretability, SHAP, LIME, feature importance, attention visualization, saliency map",
+  "Consumer Behaviour": "Marketing, consumer psychology, purchasing behavior, brand loyalty, market segmentation, consumer decision",
+  "STS": "Java programming, object oriented programming, backend systems, inheritance, polymorphism, encapsulation, design patterns"
+}
