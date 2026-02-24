@@ -24,16 +24,32 @@ def _get_base_dir():
 BASE_DIR = _get_base_dir()
 CONFIG_DIR = os.path.join(BASE_DIR, 'config')
 USER_HOME = os.path.expanduser('~')
-
-# Resolved paths
-DOWNLOADS_DIR = os.path.join(USER_HOME, 'Downloads')
-SUBJECTS_DIR = os.path.join(USER_HOME, 'Desktop', 'Subjects')
 APP_DATA_DIR = os.path.join(os.environ.get('LOCALAPPDATA', os.path.join(USER_HOME, 'AppData', 'Local')), 'AutoSorter')
 LOG_DIR = os.path.join(APP_DATA_DIR, 'logs')
 DATA_DIR = APP_DATA_DIR
 
 # Processed files registry path
 PROCESSED_FILES_PATH = os.path.join(DATA_DIR, 'processed_files.json')
+
+# These are resolved at runtime from config.json via get_source_dir() / get_destination_dir()
+_config_cache = None
+
+def _get_config_cached():
+    """Load config once and cache it."""
+    global _config_cache
+    if _config_cache is None:
+        _config_cache = load_config()
+    return _config_cache
+
+def get_source_dir():
+    """Get the source directory (Downloads) from config, with fallback."""
+    config = _get_config_cached()
+    return config.get('source_dir', os.path.join(USER_HOME, 'Downloads'))
+
+def get_destination_dir():
+    """Get the destination directory (Subjects) from config, with fallback."""
+    config = _get_config_cached()
+    return config.get('destination_dir', os.path.join(USER_HOME, 'Desktop', 'Subjects'))
 
 # Supported file extensions grouped by type
 SUPPORTED_EXTENSIONS = {
@@ -47,15 +63,22 @@ for exts in SUPPORTED_EXTENSIONS.values():
     ALL_SUPPORTED_EXTENSIONS.update(exts)
 
 
-def load_config():
-    """Load runtime configuration from config/config.json.
+def load_config(config_path=None):
+    """Load runtime configuration from config.json.
+    
+    Args:
+        config_path: Optional path to a custom config file.
+                     If None, loads from config/config.json.
     
     Returns:
         dict: Configuration dictionary with all runtime settings.
     """
-    config_path = os.path.join(CONFIG_DIR, 'config.json')
+    global _config_cache
+    if config_path is None:
+        config_path = os.path.join(CONFIG_DIR, 'config.json')
     with open(config_path, 'r', encoding='utf-8') as f:
         config = json.load(f)
+    _config_cache = config  # Update cache so get_source_dir/get_destination_dir use this
     return config
 
 
@@ -91,9 +114,9 @@ def ensure_directories():
     """Create all required directories if they don't exist.
     
     Creates:
-        - Subjects directory on Desktop
+        - Destination directory for subjects
         - AppData directory for logs and data
         - Log directory
     """
-    for directory in [SUBJECTS_DIR, APP_DATA_DIR, LOG_DIR]:
+    for directory in [get_destination_dir(), APP_DATA_DIR, LOG_DIR]:
         os.makedirs(directory, exist_ok=True)

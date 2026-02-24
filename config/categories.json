@@ -5,5 +5,5 @@
   "Compiler": "Compiler design, lexical analysis, parsing, AST, code generation, flex, yacc, syntax tree, grammar, tokenizer, bison",
   "XAI": "Explainable AI, model interpretability, SHAP, LIME, feature importance, attention visualization, saliency map",
   "Consumer Behaviour": "Marketing, consumer psychology, purchasing behavior, brand loyalty, market segmentation, consumer decision",
-  "STS": "Java programming, object oriented programming, backend systems, inheritance, polymorphism, encapsulation, design patterns"
+  "STS": "Java programming, public static void main, System.out.println, Scanner, ArrayList, HashMap, LinkedList, class extends implements, int String boolean double, Node next data, public void private, try catch finally throw, new object constructor, linked list stack queue binary tree, data structures algorithms in Java, segregate nodes traversal, sorting searching"
 }

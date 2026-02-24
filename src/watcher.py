@@ -42,12 +42,24 @@ class FileWatcher:
         
         self.observer = Observer()
         self._handler = _NewFileHandler(self)
+        self._recent_files = {}  # filepath -> timestamp for debounce
+        self._debounce_seconds = 5
         
         self.logger.info(f"File watcher configured for: {watch_dir}")
 
     def start(self):
-        """Start watching the Downloads folder. Blocks until stopped."""
+        """Start watching the Downloads folder. Blocks until stopped.
+        
+        Also performs an initial scan of existing files in the directory.
+        """
         self.logger.info(f"Starting file watcher on: {self.watch_dir}")
+        
+        # Scan existing files if configured
+        if self.config.get('scan_existing_on_startup', False):
+            self._scan_existing()
+        else:
+            self.logger.info("Startup scan disabled — watching for new files only")
+        
         self.observer.schedule(self._handler, self.watch_dir, recursive=False)
         self.observer.start()
         
@@ -56,6 +68,41 @@ class FileWatcher:
                 self.observer.join(timeout=1)
         except KeyboardInterrupt:
             self.stop()
+
+    def _scan_existing(self):
+        """Scan the Downloads folder for existing supported files.
+        
+        Submits any supported files found to the worker pool.
+        This catches files that were downloaded before the watcher started.
+        """
+        self.logger.info("Scanning existing files in Downloads...")
+        count = 0
+        try:
+            for filename in os.listdir(self.watch_dir):
+                filepath = os.path.join(self.watch_dir, filename)
+                if not os.path.isfile(filepath):
+                    continue
+                
+                ext = os.path.splitext(filename)[1].lower()
+                if ext in self.ignored_extensions:
+                    continue
+                if ext not in ALL_SUPPORTED_EXTENSIONS:
+                    continue
+                
+                # Check file size
+                try:
+                    file_size = os.path.getsize(filepath)
+                    if file_size > self.max_file_size or file_size == 0:
+                        continue
+                except OSError:
+                    continue
+                
+                self.worker_pool.submit(filepath)
+                count += 1
+        except OSError as e:
+            self.logger.error(f"Error scanning Downloads: {e}")
+        
+        self.logger.info(f"Startup scan complete: {count} supported files found")
 
     def stop(self):
         """Stop the file watcher gracefully."""
@@ -67,13 +114,20 @@ class FileWatcher:
     def _on_new_file(self, filepath):
         """Handle a new file detection event.
         
+        Debounces duplicate events (on_created + on_modified) for the same file.
         Validates extension, checks size, waits for file readiness,
-        then submits to the worker pool. Runs in a separate thread
-        to avoid blocking the watchdog observer.
+        then submits to the worker pool.
         
         Args:
             filepath: Absolute path to the new file.
         """
+        # Debounce: skip if we saw this file within the last N seconds
+        now = time.time()
+        if filepath in self._recent_files:
+            if now - self._recent_files[filepath] < self._debounce_seconds:
+                return
+        self._recent_files[filepath] = now
+        
         filename = os.path.basename(filepath)
         ext = os.path.splitext(filename)[1].lower()
         
@@ -172,6 +226,16 @@ class _NewFileHandler(FileSystemEventHandler):
 
     def on_created(self, event):
         """Called when a file is created in the watched directory."""
+        if event.is_directory:
+            return
+        self.watcher._on_new_file(event.src_path)
+
+    def on_modified(self, event):
+        """Called when a file is modified in the watched directory.
+        
+        Browsers sometimes create an empty file first, then write content,
+        which triggers on_modified instead of on_created.
+        """
         if event.is_directory:
             return
         self.watcher._on_new_file(event.src_path)

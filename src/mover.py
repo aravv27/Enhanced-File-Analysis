@@ -9,12 +9,12 @@ import os
 import shutil
 from datetime import datetime
 
-from src.config import SUBJECTS_DIR
+from src.config import get_destination_dir
 from src.logger import get_logger
 
 
-def move_file(filepath, category):
-    """Move a file to the appropriate subject folder on Desktop.
+def move_file(filepath, category, destination_base=None):
+    """Move a file to the appropriate subject folder.
     
     Creates the destination directory if it doesn't exist.
     If a file with the same name already exists, appends a timestamp
@@ -23,6 +23,8 @@ def move_file(filepath, category):
     Args:
         filepath: Absolute path to the source file.
         category: Subject category name (used as folder name).
+        destination_base: Optional base directory for subjects.
+                          If None, uses get_destination_dir() from config.
         
     Returns:
         str: Absolute path to the file's new location.
@@ -33,7 +35,8 @@ def move_file(filepath, category):
     logger = get_logger()
     
     # Ensure destination directory exists
-    dest_dir = os.path.join(SUBJECTS_DIR, category)
+    base = destination_base or get_destination_dir()
+    dest_dir = os.path.join(base, category)
     os.makedirs(dest_dir, exist_ok=True)
     
     filename = os.path.basename(filepath)

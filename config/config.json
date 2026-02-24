@@ -1,4 +1,7 @@
 {
+  "source_dir": "C:\\Users\\dell\\Downloads",
+  "destination_dir": "C:\\Users\\dell\\OneDrive\\Desktop\\subjects\\sem-6",
+  "scan_existing_on_startup": false,
   "confidence_threshold": 0.50,
   "max_file_size_mb": 100,
   "worker_threads": 2,

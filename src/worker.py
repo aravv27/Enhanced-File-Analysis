@@ -36,10 +36,13 @@ class WorkerPool:
         self.logger = get_logger()
         self.threshold = config.get('confidence_threshold', 0.50)
         self.num_workers = config.get('worker_threads', 2)
+        self.destination_dir = config.get('destination_dir', None)
         self.executor = ThreadPoolExecutor(max_workers=self.num_workers)
         self.processed_files = self._load_processed_files()
         
         self.logger.info(f"Worker pool initialized: {self.num_workers} workers, threshold={self.threshold}")
+        if self.destination_dir:
+            self.logger.info(f"Destination directory: {self.destination_dir}")
 
     def submit(self, filepath):
         """Submit a file for processing.
@@ -97,7 +100,7 @@ class WorkerPool:
             
             if score >= self.threshold:
                 # Move file to subject folder
-                dest = move_file(filepath, category)
+                dest = move_file(filepath, category, destination_base=self.destination_dir)
                 log_file_result(filename, file_type, category, score, "MOVED", elapsed)
                 self.logger.info(f"MOVED {filename} -> {category}/ (score={score:.4f})")
             else:
